@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { multi } from '../data/data';
 // import { data100 } from '../data/data_100';
 // import { data300 } from '../data/data_300';
@@ -115,7 +115,46 @@ export class AppComponent  implements OnInit{
     // this.getModifiedData(option);
     // let option = this.getDataForMultipleAxesEharts();
     // console.log("data here", option.series);
-    // myChart.setOption(option);
+    // myChart.setOption(option);  
+  }
+
+  // understanding ngzone
+  
+  progress : any = 0;
+
+  processWithinAngularZone() {
+    this.progress = 0;
+    this.increaseProgress(() => console.log('Done!'));
+  }
+
+  // without zone
+  increaseProgress(callbackFun: () => void) {
+    this.progress += 1;
+    console.log(`Current progress: ${this.progress}%`);
+    if (this.progress < 100) {
+      window.setTimeout(() => {
+        this.increaseProgress(callbackFun);
+      }, 10);
+    } else {
+      callbackFun();
+    }
+  }
+
+  //with zones
+  processOutsideAngularZones() {
+    this.progress = 0;
+    this.zone.runOutsideAngular(() => {
+      this.increaseProgress(() => {
+        this.zone.run(() => {
+          console.log("Everything done", this.progress);
+        })
+      });
+    });
+  }
+
+
+  constructor(private zone: NgZone) {
+
   }
 
 // prep data for echarts
@@ -150,9 +189,9 @@ export class AppComponent  implements OnInit{
     domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
   };
 
-  constructor() {
-    // this.multi = t;
-  }
+  // constructor() {
+  //   // this.multi = t;
+  // }
 
   onSelect(event) {
     console.log(event);
